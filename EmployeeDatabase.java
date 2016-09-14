@@ -21,69 +21,65 @@ public class EmployeeDatabase {
 	}
 	
 	public void addEmployee(String e) {
-		employeeDB.add(new Employee(e));
+		this.checkNullParams(e);
+		Employee testEmployee = this.retrieveEmployee(e);
+		if (testEmployee == null) { employeeDB.add(new Employee(e)); }
+		return;
 	}
 	
 	public void addDestination(String e, String d) {
-		if (this.hasDestination(e, d)) { return; }
-		List<String> employeeDest = this.getDestinations(e);
-		employeeDest.add(d);
+		this.checkNullParams(e, d);
+		Employee testEmployee = this.retrieveEmployee(e);
+		if (testEmployee != null) {
+			List<String> employeeDest = testEmployee.getWishlist();
+			if (!employeeDest.contains(d)) { employeeDest.add(d); }
+			return; // Found a matching employee, so no need to search more
+		}
+		// No matching employee found, so throw an exception
+		else { throw new IllegalArgumentException(); }
 	}
 	
 	public boolean containsEmployee(String e) {
-		Iterator<Employee> employeeIter = this.iterator();
-		while (employeeIter.hasNext()) {
-			if (employeeIter.next().getUsername().equalsIgnoreCase(e)) {
-				return true;
-			}
-		}
-		return false;
+		this.checkNullParams(e);
+		return (this.retrieveEmployee(e) != null);
 	}
 	
 	public boolean containsDestination(String d) {
+		this.checkNullParams(d);
 		Iterator<Employee> employeeIter = this.iterator();
 		while (employeeIter.hasNext()) {
-			List<String> employeeDest = employeeIter.next().getWishlist();
-			Iterator<String> destIter = employeeDest.iterator();
-			while (destIter.hasNext()) {
-				if (destIter.next().equalsIgnoreCase(d)) { return true; }
-			}
+			if (employeeIter.next().getWishlist().contains(d)) { return true; }
 		}
 		return false;
 	}
 	
 	public boolean hasDestination(String e, String d) {
-		if (!this.containsEmployee(e)) { return false; }
-		List<String> employeeDest = this.getDestinations(e);
-		Iterator<String> destIter = employeeDest.iterator();
-		// Search for a match. Return false if none are found.
-		while (destIter.hasNext()) {
-			if (destIter.next().equalsIgnoreCase(d)) { return true; }
+		this.checkNullParams(e, d);
+		Employee testEmployee = this.retrieveEmployee(e);
+		if (testEmployee != null) {
+			return testEmployee.getWishlist().contains(d);
 		}
-		return false;
+		else { return false; }
 	}
 	
 	public List<String> getEmployees(String d) {
+		this.checkNullParams(d);
 		ArrayList<String> employeeList = new ArrayList<String>();
 		Iterator<Employee> employeeIter = this.iterator();
 		while (employeeIter.hasNext()) {
-			String employeeName = employeeIter.next().getUsername();
-			if (this.hasDestination(employeeName,d)) {
-				employeeList.add(employeeName);
+			Employee testEmployee = employeeIter.next();
+			if (testEmployee.getWishlist().contains(d)) {
+				employeeList.add(testEmployee.getUsername());
 			}
 		}
-		return (List<String>) employeeList;
+		return employeeList;
 	}
 	
 	public List<String> getDestinations(String e) {
-		Iterator<Employee> employeeIter = this.iterator();
-		while (employeeIter.hasNext()) {
-			Employee testEmployee = employeeIter.next();
-			if (testEmployee.getUsername().equalsIgnoreCase(e)) {
-				return testEmployee.getWishlist();
-			}
-		}
-		return null;
+		this.checkNullParams(e);
+		Employee testEmployee = this.retrieveEmployee(e);
+		if (testEmployee != null) { return testEmployee.getWishlist(); }
+		else { return null; }
 	}
 	
 	public Iterator<Employee> iterator() {
@@ -91,18 +87,14 @@ public class EmployeeDatabase {
 	}
 	
 	public boolean removeEmployee(String e) {
-		Iterator<Employee> employeeIter = this.iterator();
-		while (employeeIter.hasNext()) {
-			Employee testEmployee = employeeIter.next();
-			if (testEmployee.getUsername().equalsIgnoreCase(e)) {
-				employeeDB.remove(testEmployee);
-				return true;
-			}
-		}
-		return false;
+		this.checkNullParams(e);
+		Employee testEmployee = this.retrieveEmployee(e);
+		if (testEmployee != null) { return employeeDB.remove(testEmployee); }
+		else { return false; }
 	}
 	
 	public boolean removeDestination(String d) {
+		this.checkNullParams(d);
 		boolean destRemoved = false;
 		Iterator<Employee> employeeIter = this.iterator();
 		while (employeeIter.hasNext()) {
@@ -115,6 +107,25 @@ public class EmployeeDatabase {
 	
 	public int size() {
 		return employeeDB.size();
+	}
+	
+	private Employee retrieveEmployee(String e) {
+		this.checkNullParams(e);
+		Iterator<Employee> employeeIter = this.iterator();
+		while (employeeIter.hasNext()) {
+			Employee testEmployee = employeeIter.next();
+			if (testEmployee.getUsername().equalsIgnoreCase(e)) {
+				return testEmployee;
+			}
+		}
+		return null;
+	}
+	
+	private void checkNullParams(Object... objs) {
+		for (Object o : objs) {
+			if (o == null) { throw new IllegalArgumentException(); }
+		}
+		return;
 	}
 	
 }
