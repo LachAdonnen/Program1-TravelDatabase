@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,7 +16,8 @@ import java.util.Scanner;
 // Lab Section:      LAB ###
 ///////////////////////////////////////////////////////////////////////////////
 public class InteractiveDBTester {
-	//TODO Need to handle null parameter values with IllegalArgumentException
+	private static EmployeeDatabase employeeDB;
+	
 	public static void main(String[] args) {
 
         // *** Add code for steps 1 - 3 of the main method ***
@@ -26,13 +29,12 @@ public class InteractiveDBTester {
 		}
 		
 		// Instantiate the employee database
-		EmployeeDatabase employeeDB = new EmployeeDatabase();
+		employeeDB = new EmployeeDatabase();
 		
 		// Open the file and parse information into the database
-		File employeeFile = null;
+		File employeeFile = new File(args[0]);
 		Scanner fileIn = null;
 		try {
-			employeeFile = new File(args[0]);
 			fileIn = new Scanner(employeeFile);
 			// For each line, read in the employee and all destinations
 			while (fileIn.hasNextLine()) {
@@ -74,12 +76,18 @@ public class InteractiveDBTester {
                 switch (choice) {
                 
                 case 'd':
-                    // *** Add code to implement this option ***
+                	if (employeeDB.removeDestination(remainder)) {
+                		System.out.println("destination discontinued");
+                	}
+                	else { System.out.println("destination not found"); }
                     break;
 
-
                 case 'f':
-                    // *** Add code to implement this option ***
+                	if (employeeDB.containsEmployee(remainder)) {
+                		System.out.println(ListToString(remainder,
+                				employeeDB.getDestinations(remainder)));
+                	}
+                	else { System.out.println("employee not found"); }
                     break;
 
                 case 'h': 
@@ -87,11 +95,15 @@ public class InteractiveDBTester {
                     break;
 
                 case 'i':
-                    // *** Add code to implement this option ***
+                    printDatabaseInformation();
                     break;
                     
                 case 's':
-                    // *** Add code to implement this option ***
+                    if (employeeDB.containsDestination(remainder)) {
+                    	System.out.println(ListToString(remainder,
+                    			employeeDB.getEmployees(remainder)));
+                    }
+                    else { System.out.println("destination not found"); }
                     break;
 
                 case 'q':
@@ -100,7 +112,10 @@ public class InteractiveDBTester {
                     break;
 
                 case 'r':
-                    // *** Add code to implement this option ***
+                	if (employeeDB.removeEmployee(remainder)) {
+                		System.out.println("employee removed");
+                	}
+                	else { System.out.println("employee not found"); }
                     break;
 
                 default:  // ignore any unknown commands
@@ -125,5 +140,55 @@ public class InteractiveDBTester {
          System.out.println("q - quit");
          System.out.println("r <Employee> - remove the given <Employee>");
 
+    }
+    
+    private static String ListToString(String label, List<String> list) {
+    	String toString = label + ":";
+    	Iterator<String> listIter = list.iterator();
+    	while (listIter.hasNext()) {
+    		toString += listIter.next();
+    		if (listIter.hasNext()) { toString += ","; }
+    	}
+    	return toString;
+    }
+    
+    private static void printDatabaseInformation() {
+    	/*
+    	 * Line 1: Employee and Destination Counts
+    	 */
+    	// Retrieve the number of employees
+    	int numEmployees = employeeDB.size();
+    	// Retrieve the number of unique destinations
+    	int numDestinations = numUniqueDestinations();
+    	System.out.println("Employees: " + numEmployees + "Destinations: " +
+    			numDestinations);
+    	
+    	/*
+    	 * Line 2: Destinations per Employee
+    	 */
+    	
+    	/*
+    	 * Line 3: Employees per Destination
+    	 */
+    	
+    	/*
+    	 * Line 4: Most Popular Destination
+    	 */
+    }
+    
+    private static int numUniqueDestinations() {
+    	ArrayList<String> destList = new ArrayList<String>();
+    	Iterator<Employee> employeeIter = employeeDB.iterator();
+    	while (employeeIter.hasNext()) {
+    		Employee testEmployee = employeeIter.next();
+    		Iterator<String> destIter = testEmployee.getWishlist().iterator();
+    		while (destIter.hasNext()) {
+    			String destination = destIter.next();
+    			if (!destList.contains(destination)) {
+    				destList.add(destination);
+    			}
+    		}
+    	}
+    	return destList.size();
     }
 }
