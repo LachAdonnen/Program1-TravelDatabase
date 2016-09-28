@@ -154,41 +154,122 @@ public class InteractiveDBTester {
     
     private static void printDatabaseInformation() {
     	/*
+    	 * Instantiate variables needed for calculations.
+    	 */
+    	// Retrieve the total number of employees along with the min/max
+    	// number of destinations per employee 
+    	int totalEmployees = employeeDB.size();
+    	int maxDestinationsPerEmployee = 0;
+    	int minDestinationsPerEmployee = 0;
+    	double avgDestinationsPerEmployee = 0.0;
+    	// Retrieve the total number of destination along with the min/max
+    	// number of employees per destination and which destinations are on the
+    	// most wish lists.
+    	int totalDestinations = 0;
+    	int maxEmployeesPerDestination = 0;
+    	int minEmployeesPerDestination = 0;
+    	double avgEmployeesPerDestination = 0.0;
+    	ArrayList<String> mostPopularDestinations = new ArrayList<String>();
+    	// Store a reverse-index database for destinations
+    	ArrayList<String[]> destList = new ArrayList<String[]>();
+    	
+    	/*
+    	 * Loop through all employees and cache reverse-index data
+    	 */
+    	Iterator<Employee> employeeIter = employeeDB.iterator();
+    	while (employeeIter.hasNext()) {
+    		Employee testEmployee = employeeIter.next();
+    		List<String> testWishlist = testEmployee.getWishlist();
+    		
+    		// Test the wish list size for min/max
+    		int testNumDest = testWishlist.size();
+    		if (testNumDest > maxDestinationsPerEmployee) {
+    			maxDestinationsPerEmployee = testNumDest;
+    		}
+    		if (testNumDest < minDestinationsPerEmployee
+    				|| minDestinationsPerEmployee == 0) { 
+    			minDestinationsPerEmployee = testNumDest;
+    		}
+    		
+    		/* 
+    		 * Loop over destinations and add to reverse-index
+    		 */
+    		Iterator<String> destinationIter = testWishlist.iterator();
+    		while (destinationIter.hasNext()) {
+    			String testDestination = destinationIter.next();
+    			// Check if the destination has been processed before
+    			Iterator<String[]> indexIter = destList.iterator();
+    			boolean destProcessed = false;
+    			while (indexIter.hasNext()) {
+    				String[] destAndCount = indexIter.next();
+    				if (destAndCount[0].equals(testDestination)) {
+    					int curCount = Integer.valueOf(destAndCount[1]);
+    					destAndCount[1] = Integer.toString(++curCount);
+    					destProcessed = true;
+    				}
+    			}
+    			// If not processed, add a new entry to the list
+    			if (!destProcessed) {
+    				String[] newDestination = {testDestination, "1"};
+    				destList.add(newDestination);
+    			}
+    		}
+    	}
+    		
+		// Use the reverse index to get destination statistics
+    	totalDestinations = destList.size();
+		Iterator<String[]> destinationIter = destList.iterator();
+    	while (destinationIter.hasNext()) {
+    		String[] testDestination = destinationIter.next();
+    		int testNumEmp = Integer.valueOf(testDestination[1]);
+    		if (testNumEmp > maxEmployeesPerDestination) {
+    			maxEmployeesPerDestination = testNumEmp;
+    		}
+    		if (testNumEmp < minEmployeesPerDestination
+    				|| minEmployeesPerDestination == 0) {
+    			minEmployeesPerDestination = testNumEmp;
+    		}
+    	}
+    	// Loop again to find the destinations that had the max number
+		destinationIter = destList.iterator();
+    	while (destinationIter.hasNext()) {
+    		String[] testDestination = destinationIter.next();
+    		int testNumEmp = Integer.valueOf(testDestination[1]);
+    		if (testNumEmp == maxEmployeesPerDestination) {
+    			mostPopularDestinations.add(testDestination[0]);
+    		}
+    	}
+    	
+    	// Calculate the average values
+    	avgEmployeesPerDestination = (double)totalEmployees / totalDestinations;
+    	avgDestinationsPerEmployee = (double)totalDestinations / totalEmployees;
+    	
+    	/*
     	 * Line 1: Employee and Destination Counts
     	 */
-    	// Retrieve the number of employees
-    	int numEmployees = employeeDB.size();
-    	// Retrieve the number of unique destinations
-    	int numDestinations = numUniqueDestinations();
-    	System.out.println("Employees: " + numEmployees + "Destinations: " +
-    			numDestinations);
+    	System.out.println("Employees: " + totalEmployees + "Destinations: " +
+    			totalDestinations);
     	
     	/*
     	 * Line 2: Destinations per Employee
     	 */
+    	System.out.printf("# of destinations/employee: most %d, least %d, " +
+    			"average %f.1", maxDestinationsPerEmployee,
+    			minDestinationsPerEmployee, avgDestinationsPerEmployee);
     	
     	/*
     	 * Line 3: Employees per Destination
     	 */
+    	System.out.printf("# of employees/destination: most %d, least %d, " +
+    			"average %f.1", maxEmployeesPerDestination,
+    			minEmployeesPerDestination, avgEmployeesPerDestination);
     	
     	/*
     	 * Line 4: Most Popular Destination
     	 */
-    }
-    
-    private static int numUniqueDestinations() {
-    	ArrayList<String> destList = new ArrayList<String>();
-    	Iterator<Employee> employeeIter = employeeDB.iterator();
-    	while (employeeIter.hasNext()) {
-    		Employee testEmployee = employeeIter.next();
-    		Iterator<String> destIter = testEmployee.getWishlist().iterator();
-    		while (destIter.hasNext()) {
-    			String destination = destIter.next();
-    			if (!destList.contains(destination)) {
-    				destList.add(destination);
-    			}
-    		}
-    	}
-    	return destList.size();
+    	String displayListOfDestinations = ListToString("Most popular " +
+    			"destination", mostPopularDestinations);
+    	System.out.printf("%s [%d]", displayListOfDestinations,
+    			maxDestinationsPerEmployee);
     }
 }
