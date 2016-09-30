@@ -45,7 +45,7 @@ public class InteractiveDBTester {
 				List<String> employeeDest = employeeDB.getDestinations(
 						employeeName);
 				for (int i = 1; i < employeeData.length; i++) {
-					employeeDest.add(employeeData[i]);
+					employeeDest.add(employeeData[i].toLowerCase());
 				}
 			}
 		}
@@ -84,7 +84,7 @@ public class InteractiveDBTester {
 
                 case 'f':
                 	if (employeeDB.containsEmployee(remainder)) {
-                		System.out.println(ListToString(remainder,
+                		System.out.println(ListToString(remainder + ":",
                 				employeeDB.getDestinations(remainder)));
                 	}
                 	else { System.out.println("employee not found"); }
@@ -100,7 +100,7 @@ public class InteractiveDBTester {
                     
                 case 's':
                     if (employeeDB.containsDestination(remainder)) {
-                    	System.out.println(ListToString(remainder,
+                    	System.out.println(ListToString(remainder + ":",
                     			employeeDB.getEmployees(remainder)));
                     }
                     else { System.out.println("destination not found"); }
@@ -143,7 +143,7 @@ public class InteractiveDBTester {
     }
     
     private static String ListToString(String label, List<String> list) {
-    	String toString = label + ":";
+    	String toString = label;
     	Iterator<String> listIter = list.iterator();
     	while (listIter.hasNext()) {
     		toString += listIter.next();
@@ -156,15 +156,19 @@ public class InteractiveDBTester {
     	/*
     	 * Instantiate variables needed for calculations.
     	 */
-    	// Retrieve the total number of employees along with the min/max
-    	// number of destinations per employee 
-    	int totalEmployees = employeeDB.size();
+    	// Store the total number of employees along with the min/max number of
+    	// destinations per employee 
+    	int uniqueEmployees = employeeDB.size();
+    	// Stores the numerator for average calculation
+    	int totalEmployees = 0;
     	int maxDestinationsPerEmployee = 0;
     	int minDestinationsPerEmployee = 0;
     	double avgDestinationsPerEmployee = 0.0;
-    	// Retrieve the total number of destination along with the min/max
-    	// number of employees per destination and which destinations are on the
-    	// most wish lists.
+    	// Store the total number of destination along with the min/max number
+    	// of employees per destination and which destinations are on the most
+    	// wish lists.
+    	int uniqueDestinations = 0;
+    	// Stores the numerator for average calculation
     	int totalDestinations = 0;
     	int maxEmployeesPerDestination = 0;
     	int minEmployeesPerDestination = 0;
@@ -181,8 +185,9 @@ public class InteractiveDBTester {
     		Employee testEmployee = employeeIter.next();
     		List<String> testWishlist = testEmployee.getWishlist();
     		
-    		// Test the wish list size for min/max
+    		// Test the wish list size for min/max, add to average calculation
     		int testNumDest = testWishlist.size();
+    		totalDestinations += testWishlist.size();
     		if (testNumDest > maxDestinationsPerEmployee) {
     			maxDestinationsPerEmployee = testNumDest;
     		}
@@ -217,11 +222,12 @@ public class InteractiveDBTester {
     	}
     		
 		// Use the reverse index to get destination statistics
-    	totalDestinations = destList.size();
+    	uniqueDestinations = destList.size();
 		Iterator<String[]> destinationIter = destList.iterator();
     	while (destinationIter.hasNext()) {
     		String[] testDestination = destinationIter.next();
     		int testNumEmp = Integer.valueOf(testDestination[1]);
+    		totalEmployees += testNumEmp;
     		if (testNumEmp > maxEmployeesPerDestination) {
     			maxEmployeesPerDestination = testNumEmp;
     		}
@@ -241,35 +247,40 @@ public class InteractiveDBTester {
     	}
     	
     	// Calculate the average values
-    	avgEmployeesPerDestination = (double)totalEmployees / totalDestinations;
-    	avgDestinationsPerEmployee = (double)totalDestinations / totalEmployees;
+    	avgEmployeesPerDestination = (double)totalEmployees
+    			/ uniqueDestinations;
+    	avgDestinationsPerEmployee = (double)totalDestinations
+    			/ uniqueEmployees;
     	
     	/*
     	 * Line 1: Employee and Destination Counts
     	 */
-    	System.out.println("Employees: " + totalEmployees + "Destinations: " +
-    			totalDestinations);
+    	System.out.println("Employees: " + uniqueEmployees + 
+    			", Destinations: " + uniqueDestinations);
     	
     	/*
     	 * Line 2: Destinations per Employee
     	 */
     	System.out.printf("# of destinations/employee: most %d, least %d, " +
-    			"average %f.1", maxDestinationsPerEmployee,
+    			"average %.1f", maxDestinationsPerEmployee,
     			minDestinationsPerEmployee, avgDestinationsPerEmployee);
+    	System.out.println("");
     	
     	/*
     	 * Line 3: Employees per Destination
     	 */
     	System.out.printf("# of employees/destination: most %d, least %d, " +
-    			"average %f.1", maxEmployeesPerDestination,
+    			"average %.1f", maxEmployeesPerDestination,
     			minEmployeesPerDestination, avgEmployeesPerDestination);
+    	System.out.println("");
     	
     	/*
     	 * Line 4: Most Popular Destination
     	 */
     	String displayListOfDestinations = ListToString("Most popular " +
-    			"destination", mostPopularDestinations);
+    			"destination: ", mostPopularDestinations);
     	System.out.printf("%s [%d]", displayListOfDestinations,
-    			maxDestinationsPerEmployee);
+    			maxEmployeesPerDestination);
+    	System.out.println("");
     }
 }
