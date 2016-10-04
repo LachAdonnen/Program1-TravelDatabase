@@ -15,12 +15,23 @@ import java.util.Scanner;
 // Lecturer's Name:  Charles Fischer
 // Lab Section:      LAB ###
 ///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Main class for the Employee database. Supports user input for a variety of
+ * functions to manipulate the state of the database. Loads a text file to
+ * populate the database upon starting.
+ * @author Alex McClain
+ */
 public class InteractiveDBTester {
+	// Instance of the database
 	private static EmployeeDatabase employeeDB;
 	
+	/**
+	 * Main method for the Employee database. Runs the main loop for user input.
+	 * @param args File path for a text file containing the initial data to
+	 * populate into the database.
+	 */
 	public static void main(String[] args) {
-
-        // *** Add code for steps 1 - 3 of the main method ***
 		// Validate that only one argument is provided
 		if (args.length != 1) {
 			System.out.println("Please provide input file as command-line " +
@@ -38,12 +49,17 @@ public class InteractiveDBTester {
 			fileIn = new Scanner(employeeFile);
 			// For each line, read in the employee and all destinations
 			while (fileIn.hasNextLine()) {
+				/*
+				 * Each line of the file has the following format:
+				 * name,dest1,dest2,...,destN
+				 */
 				String employeeLine = fileIn.nextLine();
 				String[] employeeData = employeeLine.split(",");
 				String employeeName = employeeData[0].toLowerCase();
 				employeeDB.addEmployee(employeeName);
 				List<String> employeeDest = employeeDB.getDestinations(
 						employeeName);
+				// Start at i = 1 since employeeData[0] is the username
 				for (int i = 1; i < employeeData.length; i++) {
 					employeeDest.add(employeeData[i].toLowerCase());
 				}
@@ -84,8 +100,8 @@ public class InteractiveDBTester {
 
                 case 'f':
                 	if (employeeDB.containsEmployee(remainder)) {
-                		System.out.println(ListToString(remainder + ":",
-                				employeeDB.getDestinations(remainder)));
+                		System.out.println(remainder + ":" + ListToString(
+                				employeeDB.getDestinations(remainder), ","));
                 	}
                 	else { System.out.println("employee not found"); }
                     break;
@@ -100,8 +116,8 @@ public class InteractiveDBTester {
                     
                 case 's':
                     if (employeeDB.containsDestination(remainder)) {
-                    	System.out.println(ListToString(remainder + ":",
-                    			employeeDB.getEmployees(remainder)));
+                    	System.out.println(remainder + ":" + ListToString(
+                    			employeeDB.getEmployees(remainder), ","));
                     }
                     else { System.out.println("destination not found"); }
                     break;
@@ -142,16 +158,30 @@ public class InteractiveDBTester {
 
     }
     
-    private static String ListToString(String label, List<String> list) {
-    	String toString = label;
+    /**
+     * Generates a string from a list by combining all list entries with the
+     * specified delimiter.
+     * @param list List to convert into a string.
+     * @param delimiter Delimiter to use as a separator for each list entry.
+     * @return A string containing all entries from the list.
+     */
+    private static String ListToString(List<String> list, String delimiter) {
+    	String toString = "";
     	Iterator<String> listIter = list.iterator();
     	while (listIter.hasNext()) {
     		toString += listIter.next();
-    		if (listIter.hasNext()) { toString += ","; }
+    		if (listIter.hasNext()) { toString += delimiter; }
     	}
     	return toString;
     }
     
+    /**
+     * Calculates all database statistics and prints them to the console. This
+     * is done by generating a reverse index of the Employee database indexed
+     * by destination. Then, both databases are used to find totals, maximums,
+     * minimums, and averages. The reverse index database does not persist and
+     * is generated each time this method is called.
+     */
     private static void printDatabaseInformation() {
     	/*
     	 * Instantiate variables needed for calculations.
@@ -159,26 +189,36 @@ public class InteractiveDBTester {
     	// Store the total number of employees along with the min/max number of
     	// destinations per employee 
     	int uniqueEmployees = employeeDB.size();
-    	// Stores the numerator for average calculation
-    	int totalEmployees = 0;
     	int maxDestinationsPerEmployee = 0;
     	int minDestinationsPerEmployee = 0;
     	double avgDestinationsPerEmployee = 0.0;
+    	// Stores the numerator for average calculation
+    	int totalEmployees = 0;
+    	
     	// Store the total number of destination along with the min/max number
     	// of employees per destination and which destinations are on the most
     	// wish lists.
     	int uniqueDestinations = 0;
-    	// Stores the numerator for average calculation
-    	int totalDestinations = 0;
     	int maxEmployeesPerDestination = 0;
     	int minEmployeesPerDestination = 0;
     	double avgEmployeesPerDestination = 0.0;
+    	// Stores the numerator for average calculation
+    	int totalDestinations = 0;
+    	
+    	// Stores the list of most popular destinations
     	ArrayList<String> mostPopularDestinations = new ArrayList<String>();
-    	// Store a reverse-index database for destinations
+    	
+    	/*
+    	 * Store a reverse-index database for destinations.
+    	 * destList[0] stores the destination code
+    	 * destList[1] stores the number of Employees with that destination
+    	 */
     	ArrayList<String[]> destList = new ArrayList<String[]>();
     	
     	/*
-    	 * Loop through all employees and cache reverse-index data
+    	 * Loop through all employees and cache reverse-index data. We also
+    	 * track the destinations/Employee numbers as each wish list is
+    	 * retrieved.
     	 */
     	Iterator<Employee> employeeIter = employeeDB.iterator();
     	while (employeeIter.hasNext()) {
@@ -212,14 +252,14 @@ public class InteractiveDBTester {
     					destAndCount[1] = Integer.toString(++curCount);
     					destProcessed = true;
     				}
-    			}
+    			} // Finished searching reverse-index
     			// If not processed, add a new entry to the list
     			if (!destProcessed) {
     				String[] newDestination = {testDestination, "1"};
     				destList.add(newDestination);
     			}
-    		}
-    	}
+    		} // Finished processing the Employee wish list
+    	} // FInished processing all Employees in the database
     		
 		// Use the reverse index to get destination statistics
     	uniqueDestinations = destList.size();
@@ -277,8 +317,8 @@ public class InteractiveDBTester {
     	/*
     	 * Line 4: Most Popular Destination
     	 */
-    	String displayListOfDestinations = ListToString("Most popular " +
-    			"destination: ", mostPopularDestinations);
+    	String displayListOfDestinations = "Most popular destination: " +
+    			ListToString(mostPopularDestinations, ",");
     	System.out.printf("%s [%d]", displayListOfDestinations,
     			maxEmployeesPerDestination);
     	System.out.println("");
